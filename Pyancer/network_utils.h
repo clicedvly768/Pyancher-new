@@ -1,14 +1,38 @@
+#ifndef NETWORKMANAGER_H
+#define NETWORKMANAGER_H
 
-#pragma once
-#include <string>
-#include <curl/curl.h>
+#include <QObject>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QJsonArray>
 
-class NetworkManager {
+class NetworkManager : public QObject
+{
+    Q_OBJECT
+
 public:
-    NetworkManager();
-    ~NetworkManager();
+    explicit NetworkManager(QObject *parent = nullptr);
+    void loadVersions();
+    void downloadVersion(const QString &version, const QString &basePath);
 
-    static size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::string* output);
-    std::string downloadFile(const std::string& url);
-    bool downloadFileToDisk(const std::string& url, const std::string& outputPath);
+signals:
+    void versionsLoaded(const QJsonArray &versions);
+    void downloadProgress(qint64 bytesReceived, qint64 bytesTotal);
+    void downloadFinished(const QString &filePath);
+    void downloadError(const QString &error);
+
+private slots:
+    void onVersionsReplyFinished(QNetworkReply *reply);
+    void onVersionDataReplyFinished(QNetworkReply *reply);
+    void onDownloadProgress(qint64 bytesReceived, qint64 bytesTotal);
+
+private:
+    QNetworkAccessManager *manager;
+    QJsonArray versionsList;
+
+    void parseVersionData(const QJsonObject &versionData, const QString &basePath);
+    void downloadLibraries(const QJsonArray &libraries, const QString &basePath);
+    void downloadFile(const QUrl &url, const QString &filePath);
 };
+
+#endif // NETWORKMANAGER_H
