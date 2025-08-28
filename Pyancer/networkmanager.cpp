@@ -23,13 +23,11 @@ void NetworkManager::loadVersions()
 
 void NetworkManager::downloadVersion(const QString &version, const QString &basePath)
 {
-    // Находим URL для выбранной версии
     for (const QJsonValue &value : versionsList) {
         QJsonObject versionObj = value.toObject();
         if (versionObj["id"].toString() == version) {
             QString versionUrl = versionObj["url"].toString();
 
-            // Исправленная строка:
             QUrl url(versionUrl);
             QNetworkRequest request(url);
 
@@ -71,7 +69,6 @@ void NetworkManager::onVersionDataReplyFinished(QNetworkReply *reply)
     QJsonDocument doc = QJsonDocument::fromJson(data);
     QJsonObject versionData = doc.object();
 
-    // Парсим данные версии и начинаем загрузку
     parseVersionData(versionData, QDir::homePath() + "/.minecraft");
 
     reply->deleteLater();
@@ -81,11 +78,9 @@ void NetworkManager::parseVersionData(const QJsonObject &versionData, const QStr
 {
     QString versionId = versionData["id"].toString();
 
-    // Создаем директорию для версии
     QString versionDir = basePath + "/versions/" + versionId;
     QDir().mkpath(versionDir);
 
-    // Скачиваем клиентский jar
     QJsonObject downloads = versionData["downloads"].toObject();
     QJsonObject client = downloads["client"].toObject();
     QString clientUrl = client["url"].toString();
@@ -93,7 +88,6 @@ void NetworkManager::parseVersionData(const QJsonObject &versionData, const QStr
 
     downloadFile(QUrl(clientUrl), clientPath);
 
-    // Скачиваем библиотеки
     QJsonArray libraries = versionData["libraries"].toArray();
     downloadLibraries(libraries, basePath);
 }
